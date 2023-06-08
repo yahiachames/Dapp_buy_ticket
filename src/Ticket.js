@@ -71,7 +71,7 @@ const BuyTicket = () => {
 
       const accounts = await web3.eth.getAccounts();
       const buyerAddress = accounts[0];
-
+        console.warn(buyerAddress)
       const transaction = await ticketContract.methods
         .buyTickets(numTickets)
         .send({ from: buyerAddress });

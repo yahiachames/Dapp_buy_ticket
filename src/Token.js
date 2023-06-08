@@ -65,6 +65,8 @@ function Token() {
     try {
       // Initialize Web3 with the provider
       const web3 = new Web3(window.ethereum);
+         const accounts = await web3.eth.getAccounts();
+         const senderAddress = accounts[0];
 
       // Get the address of your deployed ERC20 token contract
       const tokenAddress = "0x03ed60188aaa5991a41360d8e1e6d546d2401b8c";
@@ -73,7 +75,7 @@ function Token() {
       const tokenContract = new web3.eth.Contract(MyContractABI, tokenAddress);
 
       // Get the address of the contract you want to approve as the spender
-      const spenderAddress = "0x11f1ab000ec30341f59875539ee4f1366db2a677";
+      const spenderAddress = "0xeFfe243a49C4c96e34f4A51a5b1Fd92E510c8f8E";
 
       // Convert the desired amount of tokens to the token's base unit (wei)
       const amount = web3.utils.toWei("10000", "ether"); // Approve 100 tokens
@@ -81,7 +83,7 @@ function Token() {
       // Call the ERC20 token contract's approve() function
       await tokenContract.methods
         .approve(spenderAddress, amount)
-        .send({ from: "0x467F26483CFf38235Cc6105a5dd74680dc04860b" });
+        .send({ from: senderAddress });
 
       console.log("Approval successful");
     } catch (error) {
