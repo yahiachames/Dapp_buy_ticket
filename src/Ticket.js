@@ -1,58 +1,103 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Web3 from "web3";
-import TICKET_ABI from "./contract/ticketABI.json"
-import ERC20_ABI from "./contract/buy_ticketABI.json"
+import TICKET_ABI from "./contract/ticketABI.json";
+import ERC20_ABI from "./contract/buy_ticketABI.json";
 
 const BuyTicket = () => {
   const [ticketPrice, setTicketPrice] = useState("0");
   const [numTickets, setNumTickets] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [transactionStatus, setTransactionStatus] = useState("");
+  const [userTicketCount, setUserTicketCount] = useState(0);
+  const [soldTickets, setSoldTickets] = useState(0);
+
+  useEffect(() => {
+    const fetchTicketData = async () => {
+      try {
+        const web3 = new Web3(window.ethereum);
+        const ticketContractAddress =
+          "0x11f1ab000ec30341f59875539ee4f1366db2a677";
+        const ticketContract = new web3.eth.Contract(
+          TICKET_ABI,
+          ticketContractAddress
+        );
+
+        const ticketPrice = await ticketContract.methods.ticketPrice().call();
+        const formattedTicketPrice = web3.utils.fromWei(ticketPrice, "ether");
+        setTicketPrice(formattedTicketPrice);
+
+        const accounts = await web3.eth.getAccounts();
+        const buyerAddress = accounts[0];
+
+        const userTickets = await ticketContract.methods
+          .ticketBalances(buyerAddress)
+          .call();
+        setUserTicketCount(userTickets);
+
+        const soldTickets = await ticketContract.methods
+          .ticketsSold()
+          .call();
+        setSoldTickets(soldTickets);
+      } catch (error) {
+        console.error("Error fetching ticket data:", error);
+      }
+    };
+
+    fetchTicketData();
+  }, []);
 
   const handleBuyTicket = async () => {
     try {
-      // Initialize Web3 with the provider
-      const web3 = new Web3(window.ethereum);
+      setLoading(true);
+      setTransactionStatus("Initiating transaction...");
 
-      // Get the address of your deployed ticket contract
+      const web3 = new Web3(window.ethereum);
       const ticketContractAddress =
         "0x11f1ab000ec30341f59875539ee4f1366db2a677";
-
-      // Get the address of your deployed ERC20 token contract
       const tokenContractAddress = "0x03ed60188aaa5991a41360d8e1e6d546d2401b8c";
 
-      // Load the ticket contract
       const ticketContract = new web3.eth.Contract(
         TICKET_ABI,
         ticketContractAddress
       );
-
-      // Load the ERC20 token contract
       const tokenContract = new web3.eth.Contract(
         ERC20_ABI,
         tokenContractAddress
       );
 
-      // Get the ticket price from the ticket contract
       const ticketPrice = await ticketContract.methods.ticketPrice().call();
-
-      // Convert the ticket price from the token's base unit (wei) to a human-readable format
       const formattedTicketPrice = web3.utils.fromWei(ticketPrice, "ether");
-
-      // Update the state with the ticket price
       setTicketPrice(formattedTicketPrice);
 
-      // Get the address of the account connected to the wallet
       const accounts = await web3.eth.getAccounts();
       const buyerAddress = accounts[0];
 
-      // Call the buyTickets() function of the ticket contract with the specified number of tickets
-      await ticketContract.methods
+      const transaction = await ticketContract.methods
         .buyTickets(numTickets)
         .send({ from: buyerAddress });
 
-      console.log(`Successfully purchased ${numTickets} ticket(s)`);
+      if (transaction.status) {
+        setTransactionStatus(
+          `Transaction successful. Transaction hash: ${transaction.transactionHash}`
+        );
+
+        const userTickets = await ticketContract.methods
+          .ticketBalances(buyerAddress)
+          .call();
+          console.warn(userTickets , typeof(userTickets))
+        setUserTicketCount(userTickets);
+
+        const soldTickets = await ticketContract.methods
+          .ticketsSold()
+          .call();
+          console.warn(soldTickets , typeof(soldTickets))
+        setSoldTickets(soldTickets);
+      } else {
+        setTransactionStatus("Transaction failed.");
+      }
     } catch (error) {
       console.error("Error buying tickets:", error);
+      setTransactionStatus(`Transaction failed. Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -85,8 +130,12 @@ const BuyTicket = () => {
       >
         Buy Tickets
       </button>
-      <h5>ticket price : {ticketPrice} EH</h5>
-     
+      <h5>Ticket Price: {ticketPrice} EH</h5>
+      <p>{transactionStatus}</p>
+      <p style={{ color: "black" }}>
+        User Tickets: {userTicketCount.toString()}
+      </p>
+      <p style={{ color: "black" }}>Sold Tickets: {soldTickets.toString()}</p>
     </div>
   );
 };

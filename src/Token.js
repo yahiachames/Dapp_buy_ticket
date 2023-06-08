@@ -9,6 +9,7 @@ function Token() {
   const [tokenDecimals, setTokenDecimals] = useState(0);
   const [loading, setLoading] = useState(true);
   const [senderBalance, setSenderBalance] = useState("");
+  const tokenAddress = "0x03ed60188aaa5991a41360d8e1e6d546d2401b8c";
 
   useEffect(() => {
     const loadTokenDetails = async () => {
@@ -101,6 +102,7 @@ function Token() {
   return (
     <div className="container">
       <h2>Token Details</h2>
+      <p>Token Address: {tokenAddress}</p>
       <p>Name: {tokenName}</p>
       <p>Symbol: {tokenSymbol}</p>
       <p>Decimals: {tokenDecimals}</p>
