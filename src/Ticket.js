@@ -85,6 +85,7 @@ const BuyTicket = () => {
       >
         Buy Tickets
       </button>
+      <h5>ticket price : {ticketPrice} EH</h5>
      
     </div>
   );

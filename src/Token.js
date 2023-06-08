@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import Web3 from "web3";
-import MyContractABI from "./contract/buy_ticketABI.json"; // Import the contract's ABI
+import MyContractABI from "./contract/buy_ticketABI.json";
+import { Spinner, Button } from "react-bootstrap";
 
 function Token() {
   const [tokenName, setTokenName] = useState("");
   const [tokenSymbol, setTokenSymbol] = useState("");
   const [tokenDecimals, setTokenDecimals] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [senderBalance, setSenderBalance] = useState("");
 
   useEffect(() => {
     const loadTokenDetails = async () => {
@@ -32,10 +34,23 @@ function Token() {
         // Call the ERC20 token contract's decimals() function
         const decimals = await tokenContract.methods.decimals().call();
 
-        // Update the state with the token details
+        // Get the address of the connected account
+        const accounts = await web3.eth.getAccounts();
+        const senderAddress = accounts[0];
+
+        // Call the ERC20 token contract's balanceOf() function to get the balance of the sender
+        const balance = await tokenContract.methods
+          .balanceOf(senderAddress)
+          .call();
+
+        // Convert the balance from the token's base unit to a human-readable format
+        const formattedBalance = web3.utils.fromWei(balance, "ether");
+
+        // Update the state with the token details and sender balance
         setTokenName(name);
         setTokenSymbol(symbol);
         setTokenDecimals(decimals);
+        setSenderBalance(formattedBalance);
         setLoading(false);
       } catch (error) {
         console.error("Error loading token details:", error);
@@ -74,17 +89,27 @@ function Token() {
   };
 
   if (loading) {
-    return <div>Loading token details...</div>;
+    return (
+      <div className="text-center">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
+    );
   }
 
   return (
-    <div>
+    <div className="container">
       <h2>Token Details</h2>
       <p>Name: {tokenName}</p>
       <p>Symbol: {tokenSymbol}</p>
       <p>Decimals: {tokenDecimals}</p>
-      <button onClick={approveSpender}>Approve Spender</button>
+      <p>Sender Balance: {senderBalance} Tokens</p>
+      <Button variant="primary" onClick={approveSpender}>
+        Approve Spender
+      </Button>
     </div>
   );
 }
+
 export default Token;
