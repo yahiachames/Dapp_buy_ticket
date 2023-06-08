@@ -75,7 +75,7 @@ function Token() {
       const tokenContract = new web3.eth.Contract(MyContractABI, tokenAddress);
 
       // Get the address of the contract you want to approve as the spender
-      const spenderAddress = "0xeFfe243a49C4c96e34f4A51a5b1Fd92E510c8f8E";
+      const spenderAddress = "0xEF533f5092aAd01F3F551328A66Be91782e5bc53";
 
       // Convert the desired amount of tokens to the token's base unit (wei)
       const amount = web3.utils.toWei("10000", "ether"); // Approve 100 tokens

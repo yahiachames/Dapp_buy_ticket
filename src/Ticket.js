@@ -14,6 +14,8 @@ const BuyTicket = () => {
   useEffect(() => {
     const fetchTicketData = async () => {
       try {
+         await window.ethereum.request({ method: "eth_requestAccounts" });
+
         const web3 = new Web3(window.ethereum);
         const ticketContractAddress =
           "0x11f1ab000ec30341f59875539ee4f1366db2a677";
